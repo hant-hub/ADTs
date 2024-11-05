@@ -1,0 +1,18 @@
+[
+ {
+  "directory": "/home/ehantman/Desktop/repos/ADTs",
+  "arguments": [
+   "cc",
+   "-IdynamicArray",
+   "-g",
+   "-MMD",
+   "-MP",
+   "-c",
+   "-fPIE",
+   "dynamicArray/main.c",
+   "-o",
+   "build/dynamicArray/main.c.o"
+  ],
+  "file": "dynamicArray/main.c"
+ }
+]
