@@ -4,26 +4,20 @@
 int main() {
 
     int* a = NULL;
+    arr_set(a, 3);
 
-    a = push_back(a, 1);
-    a = push_back(a, 2);
-    a = push_back(a, 3);
-    a = push_back(a, 4);
-    a = push_back(a, 5);
-    a = push_back(a, 6);
-    a = push_back(a, 7);
-    a = push_back(a, 8);
-    a = push_back(a, 9);
+    arr_push(a, 1);
+    arr_push(a, 2);
+    arr_push(a, 3);
+    printf("popped %d\n", arr_pop(a));
+    arr_push(a, 4);
+    arr_push(a, 5);
 
-    printf("%d\n", a[0]);
-    printf("%d\n", a[1]);
-    printf("%d\n", a[2]);
-    printf("%d\n", a[3]);
-    printf("%d\n", a[4]);
-    printf("%d\n", a[5]);
-    printf("%d\n", a[6]);
-    printf("%d\n", a[7]);
-    printf("%d\n", a[8]);
+
+
+    for (int i = 0; i < arr_len(a); i++) {
+        printf("%d: %d\n", i, a[i]);
+    }
     printf("allocs: %d\n", allocs);
 
     destroy(a);

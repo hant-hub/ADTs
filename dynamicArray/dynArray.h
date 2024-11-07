@@ -32,19 +32,26 @@ typedef struct {
 #define header(a) (((dynArray_Header*)a)-1)
 #define body(a) ((void*)(((dynArray_Header*)a)+1))
 
+#define arr_len(a) header(a)->size
+#define arr_cap(a) header(a)->capacity
+#define arr_push(a, v) a = a ? grow(a, arr_len(a) + 1) : grow(a,1); a[arr_len(a)] = v; arr_len(a)++ 
+#define arr_pop(a) (a) ? a[--arr_len(a)] : 0
+#define arr_set(a, l) a = (a == NULL) || (arr_cap(a) < l) ? grow(a, l) : a 
 
-static inline int* push_back(void *a, int val) {
+
+
+static inline int* grow(void *a, int val) {
     if (a == NULL) {
-        a = body(malloc(sizeof(dynArray_Header) + 2 * sizeof(int)));
+        int size = val < 4 ? 4 : val;
+        a = body(malloc(sizeof(dynArray_Header) + size * sizeof(int)));
         *(header(a)) = (dynArray_Header){
-           .capacity = 2,
+           .capacity = size,
            .size = 0,
         };
-    } else if (header(a)->size + 1 > header(a)->capacity) {
-        header(a)->capacity *= GROWTH_FACTOR;
+    } else if (val > header(a)->capacity) {
+        while (header(a)->capacity < val) header(a)->capacity *= GROWTH_FACTOR;
         a = body(realloc(header(a), sizeof(dynArray_Header) + header(a)->capacity * sizeof(int)));
     }
-    ((typeof(val)*)a)[header(a)->size++] = val;
     return a;
 }
 
