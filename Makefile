@@ -2,6 +2,7 @@ TARGET_EXEC := app
 
 BUILD_DIR := ./build
 
+SRC_DIRS := ./test
 
 SRCS := $(shell find $(SRC_DIRS) -name '*.c')
 HEADERS := $(shell find $(SRC_DIRS) -name '*.h')
@@ -9,7 +10,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 
 DEPS := $(OBJS:.o=.d)
 
-INC_DIRS := $(SRC_DIRS)
+INC_DIRS := $(shell find ./include -type d)
 
 INC_FLAGS := $(addprefix -I, $(INC_DIRS))
 
@@ -40,4 +41,4 @@ mem: $(BUILD_DIR)/$(TARGET_EXEC)
 
 validate: mem static
 
-include $(DEPS)
+-include $(DEPS)
