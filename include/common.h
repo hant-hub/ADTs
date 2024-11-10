@@ -14,4 +14,8 @@
 #define adt_realloc(p, n) realloc(p, n)
 #endif
 
+#ifndef adt_calloc
+#define adt_calloc(n, e) calloc(n, e)
+#endif
+
 #endif

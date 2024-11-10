@@ -43,6 +43,7 @@ static inline void adt_destroy(void* a) {
 }
 
 #undef body
+#undef GROWTH_FACTOR
 
 
 
