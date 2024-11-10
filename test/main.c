@@ -28,10 +28,10 @@ int main() {
     }
     arr_push(a, 31);
     arr_push(a, 33);
-    //for (int i = 0; i < arr_len(a); i++) {
-    //    printf("%d: %ld\n", i, a[i]);
-    //}
-    //printf("allocs: %d\n", allocs);
+    for (int i = 0; i < arr_len(a); i++) {
+        printf("%d: %ld\n", i, a[i]);
+    }
+    printf("allocs: %d\n", allocs);
     adt_destroy(a);
 
     
