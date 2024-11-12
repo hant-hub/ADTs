@@ -12,6 +12,7 @@ typedef struct {
     size_t capacity;
     size_t* hashes;
     ptrdiff_t* indicies;
+    ptrdiff_t* inverse;
     ptrdiff_t temp;
 } Hash_Header;
 
@@ -35,11 +36,12 @@ static inline size_t fnv1a_hash(void* buf, size_t len) {
 #define hash_cap(h) header(h)->capacity
 #define hash_hashes(h) header(h)->hashes
 #define hash_indicies(h) header(h)->indicies
+#define hash_inverse(h) header(h)->inverse
 #define hash_temp(h) header(h)->temp
 
     
 #define hash_put(h, k, v) \
-   ((h = h ? hash_grow(h, hash_size(h) + 1, element_size(h)) : hash_grow(h, 1, element_size(h))),   \
+   ((h = h ? hash_grow(h, hash_size(h) + 1, element_size(*h)) : hash_grow(h, 1, element_size(*h))),   \
     hash_temp(h) = hash(k), \
     h[hash_set_index(h)] = v \
     )
@@ -47,6 +49,26 @@ static inline size_t fnv1a_hash(void* buf, size_t len) {
 #define hash_get(h,k) \
     (hash_temp(h) = hash(k), hash_temp(h) = hash_get_index(h), h[hash_temp(h)])
 
+#define hash_del(h, k) \
+    ( \
+      hash_temp(h) = hash(k), \
+      hash_shift_vals(h, hash_remove_index(h), element_size(*h), 1), \
+      hash_size(h)-- \
+    )
+
+static inline void hash_shift_vals(void* h, int start, size_t elemSize, int offset) {
+    char* buf = h;
+    ptrdiff_t* indicies = hash_indicies(h);
+    ptrdiff_t* inverse = hash_inverse(h);
+    ptrdiff_t end = hash_size(h) - (offset);
+    for (size_t i = start; i < end; i++) {
+        for(int j = 0; j < elemSize; j++) {
+            buf[(i * elemSize) + j] = buf[((i + offset) * elemSize) + j];
+        }
+        indicies[inverse[i + offset]] = i;
+        inverse[i] = inverse[i + offset];
+    }
+}
 
 static inline ptrdiff_t hash_get_index(void* h) {
     size_t key = hash_temp(h) % hash_cap(h); 
@@ -69,19 +91,47 @@ static inline ptrdiff_t hash_get_index(void* h) {
     return -1;
 }
 
+static inline ptrdiff_t hash_remove_index(void* h) {
+    size_t key = hash_temp(h) % hash_cap(h); 
+    size_t step = 1;
+
+    ptrdiff_t* indicies = hash_indicies(h); 
+    size_t* hashes = hash_hashes(h);
+    int empty = 0;
+
+    while (!empty) {
+        if (indicies[key] == -1) {
+            break;
+        }
+        if (hashes[key] == hash_temp(h)) {
+            hashes[key] = 0;
+            ptrdiff_t valIndex = indicies[key];
+            indicies[key] = -2; //tombstone
+            return valIndex;
+        }
+        key = (key + step) % hash_cap(h);
+        step += 1;
+    }
+
+    return -1;
+}
+
 //assume the key hash is in h
 static inline ptrdiff_t hash_set_index(void* h) {
     size_t key = hash_temp(h) % hash_cap(h); 
     size_t step = 1;
     
     ptrdiff_t* indicies = hash_indicies(h); 
+    ptrdiff_t* inverse = hash_inverse(h);
     ptrdiff_t index = -1;
     while (index == -1) {
+        if (hash_hashes(h)[key] == hash_temp(h)) return indicies[key];
         if (indicies[key] == -1) index = key;
         key = (key + step) % hash_cap(h);
         step += 1;
     }
     indicies[index] = hash_size(h);
+    inverse[hash_size(h)] = index;
     hash_hashes(h)[index] = hash_temp(h);
     return hash_size(h)++;
 }
@@ -91,6 +141,7 @@ static inline void* hash_grow(void* h, size_t size, size_t bucketSize) {
         if (size < 50) size = 50; 
         size_t* hashes = adt_malloc(size * sizeof(size_t));
         ptrdiff_t* indicies = adt_malloc(size * sizeof(ptrdiff_t));
+        ptrdiff_t* inverse = adt_malloc(size * sizeof(ptrdiff_t));
         
         memset(hashes, 0, size * sizeof(size_t));
         memset(indicies, -1, size * sizeof(size_t));
@@ -101,6 +152,7 @@ static inline void* hash_grow(void* h, size_t size, size_t bucketSize) {
             .capacity = size,
             .hashes = hashes,
             .indicies = indicies,
+            .inverse = inverse
         };
     } else if (size > hash_cap(h)) {
         printf("Resize not implemented\n");
@@ -108,9 +160,13 @@ static inline void* hash_grow(void* h, size_t size, size_t bucketSize) {
     return h;
 }
 
+
+
+
 static inline void hash_destroy(void* h) {
     free(hash_hashes(h));
     free(hash_indicies(h));
+    free(hash_inverse(h));
     free(header(h));
 }
 

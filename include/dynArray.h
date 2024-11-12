@@ -2,6 +2,7 @@
 #define ADT_DYNARRAY_H
 
 #include "common.h"
+#include <stddef.h>
 
 #define GROWTH_FACTOR 1.5
 
@@ -18,8 +19,34 @@ typedef struct {
 #define arr_push(a, v) (a ? dyn_array_grow((void**)(&a), arr_len(a) + 1, element_size(a)) : dyn_array_grow((void**)(&a),1, element_size(a)), (a[arr_len(a)++] = v))
 #define arr_pop(a) (a) ? a[--arr_len(a)] : 0
 #define arr_set(a, l) ((((a == NULL) || (arr_cap(a) < l)) ? dyn_array_grow((void**)(&a), l, element_size(a)) : 0), arr_len(a) = l) 
+#define arr_ins(a, i, v) \
+    ( \
+    dyn_array_grow((void**)(&a), arr_len(a) + 1, element_size(a[0])), \
+    dyn_array_shift(&a[i], element_size(a[0]) * (arr_len(a)-i), 1 * (int)element_size(a[0])), \
+    arr_len(a)++, \
+    a[i] = v \
+    )
+
+#define arr_del(a, i) \
+    ( \
+    dyn_array_shift(&a[i], element_size(a[0]) * (arr_len(a)-i), -1 * (int)element_size(a[0])), \
+    arr_len(a)-- \
+    )
 
 
+static inline void dyn_array_shift(void* start, ptrdiff_t end, int offset) {
+    char* buf = start;
+    if (offset > 0) {
+        for (ptrdiff_t i = end; i >= 0; i--) {
+            buf[i] = buf[i - offset]; 
+        }
+    } else if (offset < 0) {
+        offset *= -1;
+        for (size_t i = 0; i < end; i++) {
+            buf[i] = buf[i + offset]; 
+        }
+    }
+}
 
 static inline int dyn_array_grow(void **ref, int val, size_t elemSize) {
     void* a = *ref;
