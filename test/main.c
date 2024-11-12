@@ -48,31 +48,14 @@ int main() {
 
     
     int show_hashes = 0;
-    int* h = NULL;
-    char k = 'a';
+    char k1 = 'a';
     char k2 = 'b';
-    char k3 = 'c';
-    hash_put(h, k, 1);
-    hash_put(h, k2, 2);
-    hash_put(h, k3, 3);
+    struct {char key; int val;}* h = NULL;
+    hash_ins(h, k1, 1);
+    hash_ins(h, k2, 2);
 
-    hash_del(h, k3);
-
-    for (int i = 0; i < hash_size(h); i++) {
-        printf("h: %d %ld\n", h[i], hash_inverse(h)[i]);
-    }
-    printf("(k,v): (%c, %d)\n", k, hash_get(h, k));
-    printf("(k,v): (%c, %d)\n", k, hash_get(h, k2));
-    printf("(k,v): (%c, %d)\n", k, hash_get(h, k3));
-
-    if (show_hashes) {
-        for (int i = 0; i < hash_cap(h); i++) {
-            printf("hash: 0x%.16lX\t%ld\n", hash_hashes(h)[i], hash_indicies(h)[i]);
-        }
-    }
-    hash_temp(h) = hash(k);
-
-    hash_destroy(h);
+    printf("(k, v): (%c, %d)\n", k1, hash_get(h, k1));
+    printf("(k, v): (%c, %d)\n", k2, hash_get(h, k2));
 
     return 0;
 }
