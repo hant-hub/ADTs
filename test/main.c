@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -50,12 +51,32 @@ int main() {
     int show_hashes = 0;
     char k1 = 'a';
     char k2 = 'b';
+    char k3 = 'c';
     struct {char key; int val;}* h = NULL;
+    struct {char key; int val;}* h2 = NULL;
     hash_ins(h, k1, 1);
     hash_ins(h, k2, 2);
+    hash_ins(h, k3, 3);
 
-    printf("(k, v): (%c, %d)\n", k1, hash_get(h, k1));
-    printf("(k, v): (%c, %d)\n", k2, hash_get(h, k2));
+    ptrdiff_t index1 = hash_geti(h, k1);
+    ptrdiff_t index2 = hash_geti(h, k2); 
+    ptrdiff_t index3 = hash_geti(h, k3); 
+    printf("(k, v): %ld (%c, %d) %s\n", index1, k1, h[index1].val, hash_get_meta(h, index1));
+    printf("(k, v): %ld (%c, %d) %s\n", index2, k2, h[index2].val, hash_get_meta(h, index2));
+    printf("(k, v): %ld (%c, %d) %s\n", index3, k3, h[index3].val, hash_get_meta(h, index3));
+
+    hash_del(h, k1);
+    printf("(k, v): %ld (%c, %d) %s\n", index1, k1, h[index1].val, hash_get_meta(h, index1));
+    printf("(k, v): %ld (%c, %d) %s\n", index2, k2, h[index2].val, hash_get_meta(h, index2));
+    printf("(k, v): %ld (%c, %d) %s\n", index3, k3, h[index3].val, hash_get_meta(h, index3));
+
+    hash_rebuild(h, h2);
+    index2 = hash_geti(h2, k2); 
+    index3 = hash_geti(h2, k3); 
+    printf("(k, v): %ld (%c, %d) %s\n", index2, k2, h2[index2].val, hash_get_meta(h2, index2));
+    printf("(k, v): %ld (%c, %d) %s\n", index3, k3, h2[index3].val, hash_get_meta(h2, index3));
+
+
 
     return 0;
 }
