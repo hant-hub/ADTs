@@ -5,11 +5,11 @@
 #include <stddef.h>
 #include <string.h>
 
-#define GROWTH_FACTOR 1.5
+#define GROWTH_FACTOR 1.618
 #define SIZE_LIMIT 0.8
 
 typedef enum {
-    HASH_EMP,
+    HASH_EMP = 0,
     HASH_DEL,
     HASH_OCC
 } hash_state;
@@ -35,19 +35,19 @@ static inline size_t fnv1a_hash(void* buf, size_t len) {
     return hash;
 }
 
-#define header(h) (((Hash_Header*)h)-1)
+#define hash_header(h) (((Hash_Header*)h)-1)
 #define body(h) (((Hash_Header*)h)+1)
-#define hash_cap(h) header(h)->capacity
-#define hash_size(h) header(h)->size
-#define hash_temp(h) header(h)->temp
-#define hash_meta(h) header(h)->meta
-#define hash_tomb(h) header(h)->tomb
+#define hash_cap(h) hash_header(h)->capacity
+#define hash_size(h) hash_header(h)->size
+#define hash_temp(h) hash_header(h)->temp
+#define hash_meta(h) hash_header(h)->meta
+#define hash_tomb(h) hash_header(h)->tomb
 //#define hash_hashes(h) header(h)->hashes
 #define hash(b, l) fnv1a_hash(b, l)
 
 #define hash_ins(h, k, v) \
     ( \
-      h = h ? hash_grow(h, sizeof(h[0]), hash_size(h) + 1) : hash_grow(h, sizeof(h[0]), 1), \
+      h = h ? hash_grow(h, sizeof(h[0]), sizeof(h[0].key), hash_size(h) + 1) : hash_grow(h, sizeof(h[0]), sizeof(h[0].key), 1), \
       hash_temp(h) = hash_set_index(h, &k, sizeof(h[0]), sizeof(k)), \
       h[hash_temp(h)].key = k, \
       h[hash_temp(h)].val = v, \
@@ -64,9 +64,13 @@ static inline size_t fnv1a_hash(void* buf, size_t len) {
       hash_get_index(h, &k, sizeof(h[0]), sizeof(k)) \
     )
 #define hash_del(h, k) \
-    (hash_tomb(h)++, hash_unset_index(h, &k, sizeof(h[0]), sizeof(k)))
+    (hash_tomb(h)++, hash_size(h)--, hash_unset_index(h, &k, sizeof(h[0]), sizeof(k)))
 
     
+static inline void hash_destroy(void* h) {
+    free(hash_meta(h));
+    free(hash_header(h));
+}
 
 
 static inline const char* hash_get_meta(void* h, size_t index) {
@@ -153,28 +157,50 @@ static inline int hash_test(void* h) {
     return 0;
 }
 
-static inline void* hash_grow(void* h, size_t elemSize, size_t min) {
+static inline void* hash_rebuild(void* h, size_t newSize, size_t stride, size_t keyLength) {
+    Hash_Header* resized = body(adt_malloc(sizeof(Hash_Header) + stride * newSize));
+    *hash_header(resized) = (Hash_Header){
+        .size = hash_size(h),
+            .capacity = newSize,
+            .meta = adt_calloc(1, sizeof(hash_state) * newSize) //one hash per entry
+    };
+    hash_state* meta = hash_meta(h);
+
+    char* new = (char*)resized;
+    char* old = h;
+    for (int i = 0; i < hash_cap(h); i++) {
+        if (meta[i] == HASH_OCC) {
+            char* k = &old[i * stride];
+            ptrdiff_t idx = hash_set_index(resized, k, stride, keyLength); 
+            memcpy(&new[idx * stride], k, stride);
+        }
+    }
+    hash_destroy(h);
+    return resized;
+}
+
+static inline void* hash_grow(void* h, size_t elemSize, size_t keyLength, size_t min) {
 
     if (h == NULL) {
         if (min < 50) min = 50;
         h = body(adt_malloc(sizeof(Hash_Header) + min * elemSize));
-        *header(h) = (Hash_Header){
+        *hash_header(h) = (Hash_Header){
             .size = 0,
             .capacity = min,
-            .meta = adt_malloc(sizeof(hash_state) * min) //one hash per entry
+            .meta = adt_calloc(1, sizeof(hash_state) * min) //one hash per entry
         };
-    } else if (min > hash_cap(h)) {
-        printf("Resize not implemented\n");
+    } else if (min * 1.5 > hash_cap(h)) {
+        return hash_rebuild(h, hash_cap(h) * GROWTH_FACTOR, elemSize, keyLength);
+    } else if (hash_tomb(h) > hash_cap(h) * 0.6) {
+        return hash_rebuild(h, hash_cap(h), elemSize, keyLength);
     }
 
     return h;
 }
 
-static inline void* hash_rebuild(void* h, size_t stride, size_t keyLength) {
-    return h;
-}
 
 #undef GROWTH_FACTOR
+#undef body
 
 
 #endif

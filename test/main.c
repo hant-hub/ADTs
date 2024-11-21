@@ -5,7 +5,7 @@
 static int allocs = 0;
 
 static void* deb_calloc(size_t n, size_t e, const char* file, const int line) {
-    printf("Alloc of size %ld at %s:%d\n", n, file, line);
+    printf("Alloc of size %ld at %s:%d\n", n * e, file, line);
     allocs++;
     return calloc(n, e);
 }
@@ -25,7 +25,6 @@ static void* deb_realloc(void* p, size_t n, const char* file, const int line) {
 #define adt_malloc(n) deb_malloc(n, __FILE__ , __LINE__)
 #define adt_realloc(p, n) deb_realloc(p, n, __FILE__, __LINE__)
 #define adt_calloc(n, e) deb_calloc(n, e, __FILE__, __LINE__)
-#include "common.h"
 #include "dynArray.h"
 #include "hash.h"
 
@@ -65,18 +64,35 @@ int main() {
     printf("(k, v): %ld (%c, %d) %s\n", index2, k2, h[index2].val, hash_get_meta(h, index2));
     printf("(k, v): %ld (%c, %d) %s\n", index3, k3, h[index3].val, hash_get_meta(h, index3));
 
-    hash_del(h, k1);
+    printf("Delete %c\n", k1);
     printf("(k, v): %ld (%c, %d) %s\n", index1, k1, h[index1].val, hash_get_meta(h, index1));
     printf("(k, v): %ld (%c, %d) %s\n", index2, k2, h[index2].val, hash_get_meta(h, index2));
     printf("(k, v): %ld (%c, %d) %s\n", index3, k3, h[index3].val, hash_get_meta(h, index3));
 
-    hash_rebuild(h, h2);
+
+    printf("Rebuild\n");
+    h2 = hash_rebuild(h, hash_cap(h), sizeof(h[0]), sizeof(h[0].key));
+    index1 = hash_geti(h2, k1);
     index2 = hash_geti(h2, k2); 
     index3 = hash_geti(h2, k3); 
+    printf("(k, v): %ld (%c, %d) %s\n", index1, k1, h2[index1].val, hash_get_meta(h2, index1));
     printf("(k, v): %ld (%c, %d) %s\n", index2, k2, h2[index2].val, hash_get_meta(h2, index2));
     printf("(k, v): %ld (%c, %d) %s\n", index3, k3, h2[index3].val, hash_get_meta(h2, index3));
 
+    for (int i = 'A'; i <= 'z'; i++) {
+        char k = i;
+        hash_ins(h2, k, i);
+        hash_del(h2, k);
+    }
+    for (int i = 'A'; i <= 'z'; i++) {
+        char k = i;
+        ptrdiff_t index = hash_geti(h2, k);
+        printf("(%c, %d)\n", h2[index].key, h2[index].val);
+    }
 
+    hash_destroy(h2);
+
+#include "dynArrayTemp.h"
 
     return 0;
 }
