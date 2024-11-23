@@ -4,19 +4,19 @@
 
 static int allocs = 0;
 
-static void* deb_calloc(size_t n, size_t e, const char* file, const int line) {
+void* deb_calloc(size_t n, size_t e, const char* file, const int line) {
     printf("Alloc of size %ld at %s:%d\n", n * e, file, line);
     allocs++;
     return calloc(n, e);
 }
 
-static void* deb_malloc(size_t n, const char* file, const int line) {
+void* deb_malloc(size_t n, const char* file, const int line) {
     printf("Alloc of size %ld at %s:%d\n", n, file, line);
     allocs++;
     return malloc(n);
 }
 
-static void* deb_realloc(void* p, size_t n, const char* file, const int line) {
+void* deb_realloc(void* p, size_t n, const char* file, const int line) {
     printf("Alloc of size %ld at %s:%d\n", n, file, line);
     allocs++;
     return realloc(p, n);
@@ -27,6 +27,10 @@ static void* deb_realloc(void* p, size_t n, const char* file, const int line) {
 #define adt_calloc(n, e) deb_calloc(n, e, __FILE__, __LINE__)
 #include "dynArray.h"
 #include "hash.h"
+#define T int
+#include "dynArrayTemp.h"
+#define T long
+#include "dynArrayTemp.h"
 
 int main() {
     int* a = NULL;
@@ -92,7 +96,26 @@ int main() {
 
     hash_destroy(h2);
 
-#include "dynArrayTemp.h"
+    int* dyntem = NULL;
+    for (int i = 0; i < 20; i++) {
+        dyntem = DynPush_int(dyntem, i);
+    }
+    for (int i = 0; i < DynSize_int(dyntem); i++) {
+        printf("%d\n", dyntem[i]);
+    }
+
+    DynFree_int(dyntem);
+    
+    long* dyntem2 = NULL;
+    for (int i = 0; i < 20; i++) {
+        dyntem2 = DynPush_long(dyntem2, i);
+    }
+    for (int i = 0; i < DynSize_long(dyntem2); i++) {
+        printf("%ld\n", dyntem2[i]);
+    }
+
+    DynFree_long(dyntem2);
+
 
     return 0;
 }

@@ -68,8 +68,8 @@ static inline size_t fnv1a_hash(void* buf, size_t len) {
 
     
 static inline void hash_destroy(void* h) {
-    free(hash_meta(h));
-    free(hash_header(h));
+    adt_free(hash_meta(h));
+    adt_free(hash_header(h));
 }
 
 

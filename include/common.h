@@ -18,4 +18,8 @@
 #define adt_calloc(n, e) calloc(n, e)
 #endif
 
+#ifndef adt_free
+#define adt_free(p) free(p)
+#endif
+
 #endif

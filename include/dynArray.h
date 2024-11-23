@@ -66,7 +66,7 @@ static inline int dyn_array_grow(void **ref, int val, size_t elemSize) {
 }
 
 static inline void adt_destroy(void* a) {
-    free(adt_dynarray_header(a));
+    adt_free(adt_dynarray_header(a));
 }
 
 #undef body
