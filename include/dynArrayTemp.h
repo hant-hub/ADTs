@@ -2,6 +2,7 @@
 //Delibrately not header guarded This is supposed to be able to template out multiple
 //types of dynArrays
 #include "common.h"
+#include <string.h>
 
 //This has to be a crime of some kind
 #ifndef T
@@ -19,6 +20,7 @@
 #define combine(a, b) a ## b
 #define dynArray(n, x) combine(n, x)
 #define dynHeader(x) combine(dynArrayHeader, x)
+
 
 typedef struct {
     size_t size;
@@ -44,10 +46,19 @@ T* dynArray(DynPush_, T) (T* a, T val) {
 }
 
 T* dynArray(DynDel_, T) (T* a, size_t idx) {
+    memmove(&a[idx], &a[idx + 1], sizeof(T) * (header(a)->size-- - idx));
     return a;
 }
 
-T* dynArray(DynIns_, T) (T* a, size_t idx) {
+T* dynArray(DynIns_, T) (T* a, T val, size_t idx) {
+    if (header(a)->size + 1 > header(a)->cap) {
+        dynHeader(T)* raw = header(a);
+        raw->cap *= GROWTH_FACTOR;
+        raw = adt_realloc(raw, sizeof(dynHeader(T)) + header(a)->cap * sizeof(T));
+        a =(T*)(++raw);
+    }
+    memmove(&a[idx + 1], &a[idx], sizeof(T) * (header(a)->size++ + idx));
+    a[idx] = val;
     return a;
 }
 

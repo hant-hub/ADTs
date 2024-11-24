@@ -103,19 +103,13 @@ int main() {
     for (int i = 0; i < DynSize_int(dyntem); i++) {
         printf("%d\n", dyntem[i]);
     }
+    for (int i = 0; i < 20; i++) {
+        DynDel_int(dyntem, 20 - i);
+    }
+    for (int i = 0; i < DynSize_int(dyntem); i++) {
+        printf("%d\n", dyntem[i]);
+    }
 
     DynFree_int(dyntem);
-    
-    long* dyntem2 = NULL;
-    for (int i = 0; i < 20; i++) {
-        dyntem2 = DynPush_long(dyntem2, i);
-    }
-    for (int i = 0; i < DynSize_long(dyntem2); i++) {
-        printf("%ld\n", dyntem2[i]);
-    }
-
-    DynFree_long(dyntem2);
-
-
     return 0;
 }
