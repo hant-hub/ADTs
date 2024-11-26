@@ -27,10 +27,12 @@ void* deb_realloc(void* p, size_t n, const char* file, const int line) {
 #define adt_calloc(n, e) deb_calloc(n, e, __FILE__, __LINE__)
 #include "dynArray.h"
 #include "hash.h"
+#define ADT_IMPL
 #define T int
 #include "dynArrayTemp.h"
 #define T long
 #include "dynArrayTemp.h"
+#include "hashTemp.h"
 
 int main() {
     int* a = NULL;
@@ -111,5 +113,7 @@ int main() {
     }
 
     DynFree_int(dyntem);
+
+    HashIns_intint();
     return 0;
 }

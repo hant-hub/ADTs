@@ -21,6 +21,14 @@
 #define dynArray(n, x) combine(n, x)
 #define dynHeader(x) combine(dynArrayHeader, x)
 
+T* dynArray(DynPush_, T) (T* a, T val);
+T* dynArray(DynDel_, T) (T* a, size_t idx);
+T* dynArray(DynIns_, T) (T* a, T val, size_t idx);
+void dynArray(DynFree_, T) (T* a);
+size_t dynArray(DynSize_, T) (T* a);
+size_t dynArray(DynCap_, T) (T* a);
+
+#ifdef ADT_IMPL
 
 typedef struct {
     size_t size;
@@ -76,6 +84,7 @@ size_t dynArray(DynCap_, T) (T* a) {
 }
 
 
+#endif
 
 #undef T
 #undef header
