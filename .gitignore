@@ -1,2 +1,3 @@
 build/*
 .cache/*
+compiled_commands.json
